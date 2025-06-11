@@ -1,0 +1,166 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+}
+
+
+
+// VER COMO INCORPORAR LA HORA DE LLEGADA A LA FACU.
+
+model Usuario {
+  id String @id @default(uuid())
+  // Datos del modelo
+  email String @unique
+  password String
+  telefono String
+  rol Rol
+  
+  // Relación con perfil
+  perfil Perfil?
+  
+  // Relación con solicitud de viaje
+  // Solicitudes hechas por un pasajero
+  solicitudesPasajero SolicitudViaje[] @relation("PasajeroSolicitudes")
+  // Solicitudes aceptadas por un chofer
+  solicitudesChofer SolicitudViaje[] @relation("ChoferSolicitudes")
+  
+  // Datos de auditoría
+  fechaCreacion DateTime @default(now())
+  fechaActualizacion DateTime? @updatedAt
+  fechaEliminacion DateTime?
+  estaEliminado Boolean @default(false)
+
+  Vehiculo Vehiculo[]
+}
+
+model Perfil {
+  id String @id @default(uuid())
+  
+  // Datos del modelo
+  nombre String
+  apellido String
+  dni String @unique 
+  legajo String @unique
+  biografia String?
+  
+  // Relación con usuario
+  usuario Usuario @relation(fields: [usuarioId], references: [id])
+  usuarioId String @unique
+  
+  // Datos de auditoría
+  fechaCreacion DateTime @default(now())
+  fechaActualizacion DateTime? @updatedAt
+  fechaEliminacion DateTime?
+  estaEliminado Boolean @default(false)
+}
+
+enum Rol {
+  PASAJERO
+  CONDUCTOR
+}
+
+model SolicitudViaje {
+  id String @id @default(uuid())
+  
+  // Datos del modelo
+  fechaHoraSolicitud DateTime @default(now())
+  horaLlegadaDeseada DateTime
+  tipoDeVehiculo TipoVehiculo?
+  estado EstadoSolictudViaje @default(PENDIENTE_CONFIRMACION)
+  fueAceptada Boolean @default(false)
+  fueCancelada Boolean @default(false)
+  
+  // Relación con usuario pasajero
+  pasajero Usuario @relation("PasajeroSolicitudes", fields: [pasajeroId], references: [id])
+  pasajeroId String
+  
+  // Relación con usuario chofer (opcional)
+  chofer Usuario? @relation("ChoferSolicitudes", fields: [choferId], references: [id])
+  choferId String?
+  
+  
+  // Una solicitud tiene UNA ubicación de origen
+  ubicacionOrigen Ubicacion @relation("UbicacionOrigen", fields: [ubicacionOrigenId], references: [id])
+  ubicacionOrigenId String
+  
+  //Por ahora todos los destinos son a la facultad.
+  // ubicacionDestino Ubicacion @relation("UbicacionDestino", fields: [ubicacionDestinoId], references: [id])
+  // ubicacionDestinoId String
+  
+  // Relación con vehículo si el chofer acepta
+  // vehiculo Vehiculo? @relation(fields: [vehiculoId], references: [id])
+  // vehiculoId String?
+
+  Viaje Viaje[]
+}
+
+enum EstadoSolictudViaje {
+  PENDIENTE_CONFIRMACION
+  ACEPTADA
+  CANCELADA
+}
+
+model Vehiculo {
+  id String @id @default(uuid())
+  
+  // Datos del modelo
+  patente String @unique
+  capacidad Int
+  descripcion String?
+  tipoVehiculo TipoVehiculo
+  
+  // AGREGADO: Relación con usuario conductor
+  conductor Usuario @relation(fields: [conductorId], references: [id])
+  conductorId String
+  
+  
+  // Datos de auditoría
+  fechaCreacion DateTime @default(now())
+  fechaActualizacion DateTime? @updatedAt
+  estaEliminado Boolean @default(false)
+}
+
+enum TipoVehiculo {
+  MOTO
+  CAMIONETA
+  AUTO
+}
+
+model Ubicacion {
+  id String @id @default(uuid())
+  
+  // Datos del modelo
+  nombre String?
+  longitud Decimal @db.Decimal(10, 8)
+  latitud Decimal @db.Decimal(11, 8) 
+  
+  // Relaciones con solicitud de viaje
+  solicitudesOrigen SolicitudViaje[] @relation("UbicacionOrigen")
+}
+
+// ✅ MODELO ADICIONAL SUGERIDO: Para tracking del viaje
+model Viaje {
+  id String @id @default(uuid())
+  
+  solicitud SolicitudViaje @relation(fields: [solicitudId], references: [id])
+  solicitudId String @unique
+  
+  fechaInicio DateTime?
+  fechaFin DateTime?
+  estado EstadoViaje @default(PENDIENTE)
+  
+  fechaCreacion DateTime @default(now())
+  fechaActualizacion DateTime @updatedAt
+}
+
+enum EstadoViaje {
+  PENDIENTE
+  EN_CAMINO
+  FINALIZADO
+  CANCELADO
+}
