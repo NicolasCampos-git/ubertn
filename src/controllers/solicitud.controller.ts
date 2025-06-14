@@ -24,7 +24,6 @@ export class SolicitudViajeController {
             });
 
         }catch(error){
-            console.log(error);
             return res.status(400).json({
                 success: false,
                 message: "Ah ocurrido un error al solicitar un viaje."

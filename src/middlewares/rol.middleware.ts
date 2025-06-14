@@ -1,6 +1,4 @@
 import { Request, Response, NextFunction } from "express";
-import { container } from "tsyringe";
-import { AuthService } from "../services/auth.service";
 import { JwtPayload } from "../types/auth";
 import jwt from 'jsonwebtoken';
 

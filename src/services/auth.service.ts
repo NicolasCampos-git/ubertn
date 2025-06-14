@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 dotenv.config();
-import { injectable } from "tsyringe";
+import { inject, injectable } from "tsyringe";
 import { RegistrarUsuarioDto } from "../dtos/registrar-usuario.dto";
 import prisma from "../lib/prisma";
 import { LoginDto } from "../dtos/login.dto";
@@ -8,6 +8,9 @@ import { Usuario } from "@prisma/client";
 import  bcrypt  from "bcrypt"
 import {JwtPayload} from "../types/auth";
 import jwt from 'jsonwebtoken';
+import { AuthException } from '../excepciones/auth.exception';
+import { UsuarioService } from './usuario.service';
+import { ValidationError } from '../excepciones/validation.exception';
 
 
 
@@ -16,6 +19,8 @@ import jwt from 'jsonwebtoken';
 @injectable()
 export class AuthService {
     
+    constructor(@inject(UsuarioService) private readonly usuarioService: UsuarioService){}
+
     async registrar(dataDto: RegistrarUsuarioDto): Promise<Usuario | null> {
 
         
@@ -27,50 +32,15 @@ export class AuthService {
             this.validarLegajo(dataDto.legajo)
         ]);
 
-        //encripta la contrasena con un hash.
-        const pass = await this.hashPassword(dataDto.contrasena);
-
-        //Se deberia separar la logica de la creacion del usuario
-        //usando inyeccion de depenencia para separar la logica.
-        const usuario = await prisma.usuario.create({
-            data: {
-                email: dataDto.email,
-                password: pass,
-                telefono: dataDto.telefono,
-                rol: dataDto.rol,
-                perfil: {
-                    create: {
-                        nombre: dataDto.nombre,
-                        apellido: dataDto.apellido,
-                        legajo: dataDto.legajo,
-                        dni: dataDto.dni,
-                        biografia: dataDto.biografia
-                    }
-                }
-                
-            }
-        });
-
-        if(!usuario){
-            throw new Error("Error al registrarse");
-        }
+        const usuario = await this.usuarioService.registrarUsuario(dataDto);
         
         //No deberia devolver datos sencibles.
         return usuario;
-        
     }
 
     async login(dataDto: LoginDto): Promise<string>{
 
-        //La busqueda del usuario deberia ser mediante inyeccion de dependencia.
-        const usuario = await prisma.usuario.findFirst(
-            {where: { email: dataDto.email } }
-        );
-
-        if(!usuario){
-            console.log("hola")
-            throw new Error("Error");
-        }
+        const usuario = await this.usuarioService.buscarPorEmail(dataDto.email);
         
         await this.passIsValid(dataDto.contrasena, usuario!.password);
 
@@ -93,7 +63,7 @@ export class AuthService {
         });
 
         if(await usuario){
-            throw new Error("La direccion de correo electronico ya se encuentra registrado");
+            throw new ValidationError("La direccion de correo electronico ya se encuentra registrado");
         }
 
         return true;
@@ -105,7 +75,7 @@ export class AuthService {
         });
 
         if(await perfil){
-            throw new Error("El numero de indentidad ingresado ya se encuentra registrado");
+            throw new ValidationError("El numero de indentidad ingresado ya se encuentra registrado");
         }
 
         return true;
@@ -117,7 +87,7 @@ export class AuthService {
         });
 
         if(await perfil){
-            throw new Error("El legajo ingresado ya se encuentra registrado");
+            throw new ValidationError("El legajo ingresado ya se encuentra registrado");
         }
 
         return true;
@@ -133,7 +103,7 @@ export class AuthService {
         const isValid = await bcrypt.compare(pass, userPass )
 
         if(!isValid){
-            throw new Error("Email o contrasena incorrecta");
+            throw new AuthException("Email o contrasena incorrecta");
         }
     }
 
