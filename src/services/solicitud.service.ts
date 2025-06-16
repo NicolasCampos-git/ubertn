@@ -3,6 +3,8 @@ import { inject, injectable } from "tsyringe";
 import { UsuarioService } from "./usuario.service";
 import { RegistrarSolicitudViajeDto } from "../dtos/registrar-solicitud-viaje.dto";
 import prisma from "../lib/prisma";
+import { NotFoundError } from "../excepciones/not-found.exception";
+import { ValidationError } from "../excepciones/validation.exception";
 
 
 @injectable()
@@ -48,7 +50,7 @@ export class SolicitudViajeService {
         
         const solicitudes = await prisma.solicitudViaje.findMany({
             where: {
-                id: idUsuario,
+                pasajeroId: idUsuario,
             },
         });
         
@@ -62,7 +64,7 @@ export class SolicitudViajeService {
             }
         });
         if(!solicitud){
-            throw new Error("Solicitud de viaje no encontrada.");
+            throw new NotFoundError("Solicitud de viaje no encontrada.");
         }
         return solicitud;
     }
@@ -71,7 +73,7 @@ export class SolicitudViajeService {
         const solicitud = await this.buscarSolicitudPorId(idSolicitud);
         
         if(solicitud.estado === "CANCELADA"){
-            throw new Error("La solicitud ya esta cancelada.");
+            throw new ValidationError("La solicitud ya esta cancelada.");
         }
 
         return prisma.solicitudViaje.update({
@@ -83,6 +85,38 @@ export class SolicitudViajeService {
                 fueCancelada: true
             }
         });
+    }
+
+    async listarSolicitudesPendientes(){
+        return prisma.solicitudViaje.findMany({
+            where: {
+                estado: "PENDIENTE_CONFIRMACION"
+            },
+            select: {
+              id: true,
+              horaLlegadaDeseada: true,
+              ubicacionOrigen: {
+                select: {
+                  latitud: true,
+                  longitud: true
+                }
+              },
+              pasajero: {
+                select: {
+                  telefono: true,
+                  perfil: {
+                    select: {
+                      nombre: true,
+                      apellido: true
+                    }
+                  }
+                }
+                
+              },
+              
+            },
+            
+          });
     }
 
     

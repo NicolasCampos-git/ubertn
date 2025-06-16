@@ -48,6 +48,17 @@ export class SolicitudViajeController {
         }
     }
 
+    async listaSolicitudesPendientes(req: Request, res: Response, next: NextFunction){
+        try{
+            const listado = await this.solicitudService.listarSolicitudesPendientes();
+            return res.status(200).json(listado);
+
+        }catch(error){
+            next(error);
+
+        }
+    }
+
     async cancelarSolicitudDeVaije(req: Request, res: Response, next: NextFunction){
         try{
             

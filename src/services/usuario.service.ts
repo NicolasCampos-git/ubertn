@@ -3,7 +3,8 @@ import { injectable } from "tsyringe";
 import prisma from "../lib/prisma";
 import  bcrypt  from "bcrypt"
 import { RegistrarUsuarioDto } from "../dtos/registrar-usuario.dto";
-import { error } from "console";
+import { AuthException } from "../excepciones/auth.exception";
+import { NotFoundError } from "../excepciones/not-found.exception";
 
 @injectable()
 export class UsuarioService {
@@ -17,7 +18,7 @@ export class UsuarioService {
         });
 
         if(!usuario){
-            throw new Error("Usuario no encontrado.");
+            throw new NotFoundError("Usuario no encontrado.");
         }
 
         return usuario;
@@ -46,23 +47,20 @@ export class UsuarioService {
         });
     }
 
-    async buscarPorEmail(emailUsuario: string): Promise<Usuario>{
-        const usuario =  prisma.usuario.findFirstOrThrow({
+    async buscarPorEmail(emailUsuario: string): Promise<Usuario|null>{
+        
+        const usuario =  await prisma.usuario.findUnique({
             where: {
                 email: emailUsuario
             }
         });
 
         if(!usuario){
-            throw new Error("Usuaro no encontrado.");
+            throw new NotFoundError("Usuaro no encontrado.");
         }
 
 
         return usuario;
-    }
-
-    async crearUsuarioConPerfil(): Promise<Usuario | null>{
-        return null;
     }
 
     private async hashPassword(pass: string): Promise<string>{

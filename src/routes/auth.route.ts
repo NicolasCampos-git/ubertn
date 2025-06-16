@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { container } from "tsyringe";
 import { AuthController } from "../controllers/auth.controller";
+import { captuarErrores } from "../middlewares/error.middleware";
 
 
 const router = Router();
@@ -23,7 +24,7 @@ router.post("/registrarse", async (req, res, next) => {
 
 
 router.post("/login", async (req, res, next) => {
-  const token = await controllers.login(req, res);
+  const token = await controllers.login(req, res, next);
 });
 
 /**
@@ -55,6 +56,7 @@ router.post("/login", async (req, res, next) => {
  *        description: Devuelve un error generico de un error al registrarse.
  * 
  */
+
 
 
 export default router;

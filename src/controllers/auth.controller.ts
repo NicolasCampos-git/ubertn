@@ -25,15 +25,12 @@ export class AuthController {
 
         } catch (error) {
 
-            res.status(400).json({
-                success: false,
-                message: "Error al registrar usuario."
-            });
+            next(error);
             
         }
     }
 
-    async login(req: Request, res: Response){
+    async login(req: Request, res: Response, next: NextFunction){
         try{
             const data: LoginDto = req.body as LoginDto;
             const token = await this.authService.login(data);
@@ -45,10 +42,7 @@ export class AuthController {
 
             });
         }catch(error){
-            return res.status(400).json({
-                success: false,
-                message: "Email o contrasena incorrecta."
-            });
+            next(error);
             
         }
     }

@@ -5,22 +5,29 @@ import { Request, Response, NextFunction } from "express";
 
 
 
-export function captuarErrores(err: any , _req: Request, res: Response, _next: NextFunction){
+export function captuarErrores(
+  err: any, 
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void {
   if (err instanceof AuthException) {
-    return res.status(401).json({
+    res.status(401).json({
       success: false,
       message: err.message,
     });
+    return;
   }
 
   if (err instanceof ValidationError) {
-    return res.status(401).json({
+    res.status(400).json({ 
       success: false,
       message: err.message,
     });
+    return;
   }
 
-  return res.status(500).json({
+  res.status(500).json({
     success: false,
     message: err instanceof Error ? err.message : "Error interno del servidor",
   });

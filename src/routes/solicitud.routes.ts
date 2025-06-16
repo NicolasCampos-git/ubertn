@@ -21,5 +21,9 @@ router.delete("/cancelar/:id", autorizarUsuario("PASAJERO"), async(req, res, nex
     await contollers.cancelarSolicitudDeVaije(req, res, next);
 });
 
+router.get("/solicitudes-pendientes", async(req, res, next) => {
+    await contollers.listaSolicitudesPendientes(req, res, next);
+});
+
 
 export default router;
