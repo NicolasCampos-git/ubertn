@@ -1,10 +1,12 @@
-import { Usuario } from "@prisma/client";
+import { Usuario, Vehiculo } from "@prisma/client";
 import { injectable } from "tsyringe";
 import prisma from "../lib/prisma";
 import  bcrypt  from "bcrypt"
 import { RegistrarUsuarioDto } from "../dtos/registrar-usuario.dto";
-import { AuthException } from "../excepciones/auth.exception";
+import { AuthError } from "../excepciones/auth.exception";
 import { NotFoundError } from "../excepciones/not-found.exception";
+import { RegistrarVehiculoDto } from "../dtos/registrar-vehiculo.dto";
+import { DuplicationError } from "../excepciones/duplicacion.exception";
 
 @injectable()
 export class UsuarioService {
@@ -56,7 +58,7 @@ export class UsuarioService {
         });
 
         if(!usuario){
-            throw new NotFoundError("Usuaro no encontrado.");
+            throw new AuthError("Correo o contrasena invalidos.");
         }
 
 
@@ -66,5 +68,33 @@ export class UsuarioService {
     private async hashPassword(pass: string): Promise<string>{
             const hashedPassword = await bcrypt.hash(pass, 10);
             return hashedPassword;
+    }
+
+    async registrarVehiculo(data: RegistrarVehiculoDto): Promise<Vehiculo>{
+
+        const validarPatente = await prisma.vehiculo.findFirst({
+            where: {
+                patente: data.patente
+            }
+        });
+        
+        if(validarPatente){
+            throw new DuplicationError("La patente ingresada ya se cuentra registrada.");
+        }
+
+
+        return prisma.vehiculo.create({
+            data: {
+                patente: data.patente,
+                capacidad: data.capacidad,
+                tipoVehiculo: data.tipoVehiculo,
+                descripcion: data.descripcion,
+                conductor: {
+                    connect: {
+                        id: data.conductorId
+                    }
+                }
+            }
+        });
     }
 }

@@ -96,7 +96,7 @@ model SolicitudViaje {
   // vehiculo Vehiculo? @relation(fields: [vehiculoId], references: [id])
   // vehiculoId String?
 
-  Viaje Viaje[]
+  viajes ViajeSolicitud[]
 }
 
 enum EstadoSolictudViaje {
@@ -143,12 +143,11 @@ model Ubicacion {
   solicitudesOrigen SolicitudViaje[] @relation("UbicacionOrigen")
 }
 
-// ✅ MODELO ADICIONAL SUGERIDO: Para tracking del viaje
+// Para tracking del viaje
 model Viaje {
   id String @id @default(uuid())
   
-  solicitud SolicitudViaje @relation(fields: [solicitudId], references: [id])
-  solicitudId String @unique
+  solicitudes ViajeSolicitud[]
   
   fechaInicio DateTime?
   fechaFin DateTime?
@@ -156,6 +155,19 @@ model Viaje {
   
   fechaCreacion DateTime @default(now())
   fechaActualizacion DateTime @updatedAt
+}
+
+//Tabla intermedia para asignar varias solicitudes a un viaje.
+model ViajeSolicitud {
+   
+    viajeId String
+    solicitudId String
+
+    viaje Viaje @relation(fields: [viajeId], references: [id])
+    solicitud SolicitudViaje @relation(fields: [solicitudId], references: [id])
+
+    @@id([viajeId, solicitudId])
+
 }
 
 enum EstadoViaje {

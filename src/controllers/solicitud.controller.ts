@@ -2,7 +2,9 @@ import { inject, injectable } from "tsyringe";
 import { SolicitudViajeService } from "../services/solicitud.service";
 import { Request, Response, NextFunction } from "express";
 import { RegistrarSolicitudViajeDto } from "../dtos/registrar-solicitud-viaje.dto";
-import { SolicitudViaje } from "@prisma/client";
+import { JwtPayload } from "../types/auth";
+import jwt from 'jsonwebtoken';
+
 
 
 @injectable()
@@ -24,10 +26,7 @@ export class SolicitudViajeController {
             });
 
         }catch(error){
-            return res.status(400).json({
-                success: false,
-                message: "Ah ocurrido un error al solicitar un viaje."
-            });
+            next(error);
         }
     }
 
@@ -41,10 +40,7 @@ export class SolicitudViajeController {
             });
 
         }catch(error){
-            return res.status(400).json({
-                success: false,
-                message: "Error al listar las solicitudes de viaje."
-            });
+            next(error);
         }
     }
 
@@ -63,8 +59,17 @@ export class SolicitudViajeController {
         try{
             
             const { id } = req.params;
+            
+            //ESTA PARTE SE ENCARGA DE VALIDAR QUE LA SOLICITUD PERTENEZCA AL PASAJERO.
+            //deneria cabiarlo para que sea mas limpio o incluirlo en el middleware.
+            const token = req.headers.authorization!.split(" ")[1];
+        
+            const payload = jwt.verify(token, 'prueba') as JwtPayload;
+            
 
-            const solicitud = await this.solicitudService.cancelarSolicitudDeViaje(id);
+
+            const solicitud = await this.solicitudService.cancelarSolicitudDeViaje(id, payload.id);
+            
 
             return res.status(200).json({
                 success: true,

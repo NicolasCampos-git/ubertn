@@ -1,6 +1,6 @@
 
 
-export class AuthException extends Error {
+export class AuthError extends Error {
     public success: boolean;
   
     constructor(message: string, success = false) {

@@ -8,7 +8,7 @@ import { Usuario } from "@prisma/client";
 import  bcrypt  from "bcrypt"
 import {JwtPayload} from "../types/auth";
 import jwt from 'jsonwebtoken';
-import { AuthException } from '../excepciones/auth.exception';
+import { AuthError } from '../excepciones/auth.exception';
 import { UsuarioService } from './usuario.service';
 import { ValidationError } from '../excepciones/validation.exception';
 
@@ -103,7 +103,7 @@ export class AuthService {
         const isValid = await bcrypt.compare(pass, userPass )
 
         if(!isValid){
-            throw new AuthException("Email o contrasena incorrecta");
+            throw new AuthError("Email o contrasena incorrecta");
         }
     }
 

@@ -4,10 +4,9 @@ import dotenv from 'dotenv';
 import swaggerUi from 'swagger-ui-express';
 import authRouter  from "./routes/auth.route";
 import solicitudRouter from "./routes/solicitud.routes";
+import usuarioRouter from "./routes/usuario.route";
 import swaggerSpec from './lib/swagger';
-import { Request, Response, NextFunction } from "express";
-import { AuthException } from './excepciones/auth.exception';
-import { ValidationError } from './excepciones/validation.exception';
+
 import { captuarErrores } from './middlewares/error.middleware';
 
 dotenv.config();
@@ -25,6 +24,8 @@ app.use("/api/auth", authRouter);
 
 
 app.use("/api/solicitud", solicitudRouter);
+
+app.use("/api/usuario",usuarioRouter);
 
 app.use(captuarErrores);
 

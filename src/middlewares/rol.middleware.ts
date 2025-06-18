@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { JwtPayload } from "../types/auth";
 import jwt from 'jsonwebtoken';
+import { AuthError } from "../excepciones/auth.exception";
 
 
 export function autorizarUsuario(...roles: string[]){
@@ -8,16 +9,17 @@ export function autorizarUsuario(...roles: string[]){
         const token = req.headers.authorization?.split(" ")[1];
 
         if (!token) {
-            throw new Error( "No token provided" );
+            throw new AuthError( "No token provided" );
         }
 
         
         const payload = jwt.verify(token, 'prueba') as JwtPayload;
         
         if(!roles.includes(payload.rol)){
-            throw new Error("Acceso denegado");
+            throw new AuthError("Acceso denegado");
             
         }
+
         
 
         next()

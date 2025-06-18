@@ -1,4 +1,4 @@
-import { SolicitudViaje } from "@prisma/client";
+import { SolicitudViaje, Vehiculo } from "@prisma/client";
 import { inject, injectable } from "tsyringe";
 import { UsuarioService } from "./usuario.service";
 import { RegistrarSolicitudViajeDto } from "../dtos/registrar-solicitud-viaje.dto";
@@ -15,10 +15,9 @@ export class SolicitudViajeService {
     async registrarSolicitudViaje(dto: RegistrarSolicitudViajeDto): Promise<SolicitudViaje | null>{
         await this.usuarioService.buscarPorId(dto.pasajeroId);
         
-
         //VER COMo SE MANEJA LA HORA.
         if( new Date(dto.horarioLlegada).getTime()<= Date.now()){
-            throw new Error("La hora de llegada no es correspondiente.");
+            throw new ValidationError("La hora de llegada no es correspondiente.");
         }
 
         //Una validacion adicional seria validar que la direccion exista
@@ -57,10 +56,11 @@ export class SolicitudViajeService {
         return solicitudes;
     }
 
-    async buscarSolicitudPorId(idSolicitud: string): Promise<SolicitudViaje>{
+    async buscarSolicitudPorIdUsuario(idSolicitud: string, usuarioId: string): Promise<SolicitudViaje>{
         const solicitud = await prisma.solicitudViaje.findUnique({
             where: {
-                id: idSolicitud
+                id: idSolicitud,
+                pasajeroId: usuarioId
             }
         });
         if(!solicitud){
@@ -69,8 +69,20 @@ export class SolicitudViajeService {
         return solicitud;
     }
 
-    async cancelarSolicitudDeViaje(idSolicitud: string): Promise<SolicitudViaje>{
-        const solicitud = await this.buscarSolicitudPorId(idSolicitud);
+    async buscarSolicitudPorId(idSolicitud: string): Promise<SolicitudViaje>{
+        const solicitud = await prisma.solicitudViaje.findUnique({
+            where: {
+                id: idSolicitud,
+            }
+        });
+        if(!solicitud){
+            throw new NotFoundError("Solicitud de viaje no encontrada.");
+        }
+        return solicitud;
+    }
+
+    async cancelarSolicitudDeViaje(idSolicitud: string, usuarioId: string): Promise<SolicitudViaje>{
+        const solicitud = await this.buscarSolicitudPorIdUsuario(idSolicitud, usuarioId);
         
         if(solicitud.estado === "CANCELADA"){
             throw new ValidationError("La solicitud ya esta cancelada.");
@@ -119,5 +131,37 @@ export class SolicitudViajeService {
           });
     }
 
+    //Falta ver como vincular multiples solicitudes a un viaje. va a cambiar completo.
+    async aceptarSolicitudViaje(solicitudId: string, choferId: string): Promise<SolicitudViaje>{
+
+        
+        const solicitud = await this.buscarSolicitudPorId(solicitudId);
+
+        if(solicitud.estado === "ACEPTADA" || solicitud.estado === "CANCELADA"){
+            throw new ValidationError("No es posible aceptar la solicitud de viaje seleccioada.");
+        }
+
+        return prisma.solicitudViaje.update({
+            where: {
+                id: solicitudId
+            },
+            data: {
+                estado: "ACEPTADA",
+                fueAceptada: true,
+                chofer: {
+                    connect: {
+                        id: choferId
+                    }
+                },
+                
+                
+            },
+            
+        });
+
+    }
+
+    
+    
     
 }

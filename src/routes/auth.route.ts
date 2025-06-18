@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { container } from "tsyringe";
 import { AuthController } from "../controllers/auth.controller";
-import { captuarErrores } from "../middlewares/error.middleware";
 
 
 const router = Router();
