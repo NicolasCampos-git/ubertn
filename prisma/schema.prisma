@@ -9,9 +9,6 @@ datasource db {
 }
 
 
-
-// VER COMO INCORPORAR LA HORA DE LLEGADA A LA FACU.
-
 model Usuario {
   id String @id @default(uuid())
   // Datos del modelo
@@ -26,8 +23,8 @@ model Usuario {
   // Relación con solicitud de viaje
   // Solicitudes hechas por un pasajero
   solicitudesPasajero SolicitudViaje[] @relation("PasajeroSolicitudes")
-  // Solicitudes aceptadas por un chofer
-  solicitudesChofer SolicitudViaje[] @relation("ChoferSolicitudes")
+
+
   
   // Datos de auditoría
   fechaCreacion DateTime @default(now())
@@ -36,6 +33,9 @@ model Usuario {
   estaEliminado Boolean @default(false)
 
   Vehiculo Vehiculo[]
+  
+
+  chofer Viaje[] @relation("ChoferViaje")
 }
 
 model Perfil {
@@ -79,11 +79,6 @@ model SolicitudViaje {
   pasajero Usuario @relation("PasajeroSolicitudes", fields: [pasajeroId], references: [id])
   pasajeroId String
   
-  // Relación con usuario chofer (opcional)
-  chofer Usuario? @relation("ChoferSolicitudes", fields: [choferId], references: [id])
-  choferId String?
-  
-  
   // Una solicitud tiene UNA ubicación de origen
   ubicacionOrigen Ubicacion @relation("UbicacionOrigen", fields: [ubicacionOrigenId], references: [id])
   ubicacionOrigenId String
@@ -97,6 +92,7 @@ model SolicitudViaje {
   // vehiculoId String?
 
   viajes ViajeSolicitud[]
+  
 }
 
 enum EstadoSolictudViaje {
@@ -155,19 +151,26 @@ model Viaje {
   
   fechaCreacion DateTime @default(now())
   fechaActualizacion DateTime @updatedAt
+
+  chofer Usuario @relation("ChoferViaje", fields: [choferId], references: [id])
+  choferId String
+
+  
+
+  
 }
 
 //Tabla intermedia para asignar varias solicitudes a un viaje.
 model ViajeSolicitud {
-   
+    
     viajeId String
     solicitudId String
 
     viaje Viaje @relation(fields: [viajeId], references: [id])
     solicitud SolicitudViaje @relation(fields: [solicitudId], references: [id])
 
-    @@id([viajeId, solicitudId])
-
+    
+  @@id([viajeId, solicitudId])
 }
 
 enum EstadoViaje {

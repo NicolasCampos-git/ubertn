@@ -5,5 +5,5 @@ export class RegistrarViajeDto{
 
     @IsNotEmpty()
     @IsArray()
-    solicitudId!: string[];
+    solicitudes!: string[];
 }

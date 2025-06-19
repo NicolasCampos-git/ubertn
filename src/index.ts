@@ -5,6 +5,7 @@ import swaggerUi from 'swagger-ui-express';
 import authRouter  from "./routes/auth.route";
 import solicitudRouter from "./routes/solicitud.routes";
 import usuarioRouter from "./routes/usuario.route";
+import viajeRouter from "./routes/viaje.route";
 import swaggerSpec from './lib/swagger';
 
 import { captuarErrores } from './middlewares/error.middleware';
@@ -26,6 +27,8 @@ app.use("/api/auth", authRouter);
 app.use("/api/solicitud", solicitudRouter);
 
 app.use("/api/usuario",usuarioRouter);
+
+app.use('/api/viaje', viajeRouter);
 
 app.use(captuarErrores);
 

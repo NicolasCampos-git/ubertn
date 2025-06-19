@@ -1,4 +1,4 @@
-import { SolicitudViaje, Vehiculo } from "@prisma/client";
+import { SolicitudViaje} from "@prisma/client";
 import { inject, injectable } from "tsyringe";
 import { UsuarioService } from "./usuario.service";
 import { RegistrarSolicitudViajeDto } from "../dtos/registrar-solicitud-viaje.dto";
@@ -131,15 +131,16 @@ export class SolicitudViajeService {
           });
     }
 
-    //Falta ver como vincular multiples solicitudes a un viaje. va a cambiar completo.
-    async aceptarSolicitudViaje(solicitudId: string, choferId: string): Promise<SolicitudViaje>{
+    
+    async aceptarSolicitudViaje(solicitudId: string): Promise<SolicitudViaje>{
 
         
         const solicitud = await this.buscarSolicitudPorId(solicitudId);
 
-        if(solicitud.estado === "ACEPTADA" || solicitud.estado === "CANCELADA"){
+        if(solicitud.estado !== "PENDIENTE_CONFIRMACION"){
             throw new ValidationError("No es posible aceptar la solicitud de viaje seleccioada.");
         }
+
 
         return prisma.solicitudViaje.update({
             where: {
@@ -148,12 +149,6 @@ export class SolicitudViajeService {
             data: {
                 estado: "ACEPTADA",
                 fueAceptada: true,
-                chofer: {
-                    connect: {
-                        id: choferId
-                    }
-                },
-                
                 
             },
             
