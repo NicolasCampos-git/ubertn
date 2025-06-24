@@ -8,9 +8,9 @@ import { Usuario } from "@prisma/client";
 import  bcrypt  from "bcrypt"
 import {JwtPayload} from "../types/auth";
 import jwt from 'jsonwebtoken';
-import { AuthError } from '../excepciones/auth.exception';
+import { AuthError } from '../excepciones/auth.error';
 import { UsuarioService } from './usuario.service';
-import { ValidationError } from '../excepciones/validation.exception';
+import { ValidationError } from '../excepciones/validation.error';
 
 
 

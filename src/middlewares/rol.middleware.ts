@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { JwtPayload } from "../types/auth";
 import jwt from 'jsonwebtoken';
-import { AuthError } from "../excepciones/auth.exception";
+import { AuthError } from "../excepciones/auth.error";
 
 
 export function autorizarUsuario(...roles: string[]){

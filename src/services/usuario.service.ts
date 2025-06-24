@@ -3,10 +3,10 @@ import { injectable } from "tsyringe";
 import prisma from "../lib/prisma";
 import  bcrypt  from "bcrypt"
 import { RegistrarUsuarioDto } from "../dtos/registrar-usuario.dto";
-import { AuthError } from "../excepciones/auth.exception";
-import { NotFoundError } from "../excepciones/not-found.exception";
+import { AuthError } from "../excepciones/auth.error";
+import { NotFoundError } from "../excepciones/not-found.error";
 import { RegistrarVehiculoDto } from "../dtos/registrar-vehiculo.dto";
-import { DuplicationError } from "../excepciones/duplicacion.exception";
+import { DuplicationError } from "../excepciones/duplicacion.error";
 
 @injectable()
 export class UsuarioService {
@@ -72,6 +72,7 @@ export class UsuarioService {
 
     async registrarVehiculo(data: RegistrarVehiculoDto): Promise<Vehiculo>{
 
+        //Deberia moverse a un metodo para hacerlo mas limpio.
         const validarPatente = await prisma.vehiculo.findFirst({
             where: {
                 patente: data.patente

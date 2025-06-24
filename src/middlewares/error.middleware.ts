@@ -1,7 +1,7 @@
-import { ValidationError } from "../excepciones/validation.exception";
-import { AuthError } from "../excepciones/auth.exception";
+import { ValidationError } from "../excepciones/validation.error";
+import { AuthError } from "../excepciones/auth.error";
 import { Request, Response, NextFunction } from "express";
-import { DuplicationError } from "../excepciones/duplicacion.exception";
+import { DuplicationError } from "../excepciones/duplicacion.error";
 
 
 

@@ -11,8 +11,13 @@ export class UsuarioController{
 
     async registrarVehiculo(req: Request, res: Response, next: NextFunction){
         try{
+
             const data = req.body as RegistrarVehiculoDto;
+
+
             const nuevoVehiculo = await this.usuarioService.registrarVehiculo(data);
+
+            
             return res.status(201).json({
                 success: true,
                 data: nuevoVehiculo,

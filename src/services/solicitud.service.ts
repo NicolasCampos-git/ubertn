@@ -3,8 +3,8 @@ import { inject, injectable } from "tsyringe";
 import { UsuarioService } from "./usuario.service";
 import { RegistrarSolicitudViajeDto } from "../dtos/registrar-solicitud-viaje.dto";
 import prisma from "../lib/prisma";
-import { NotFoundError } from "../excepciones/not-found.exception";
-import { ValidationError } from "../excepciones/validation.exception";
+import { NotFoundError } from "../excepciones/not-found.error";
+import { ValidationError } from "../excepciones/validation.error";
 
 
 @injectable()

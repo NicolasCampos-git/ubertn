@@ -11,16 +11,50 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const tsyringe_1 = require("tsyringe");
-const auth_service_1 = require("../auth/auth.service");
+const auth_controller_1 = require("../controllers/auth.controller");
 const router = (0, express_1.Router)();
-const services = tsyringe_1.container.resolve(auth_service_1.AuthService);
-router.post("/registrarse", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const usuario = yield services.registrar(req.body);
-        res.status(201).json(usuario);
-    }
-    catch (error) {
-        res.status(400).json();
-    }
+const controllers = tsyringe_1.container.resolve(auth_controller_1.AuthController);
+/**
+ * @swagger
+ * components:
+ *    securitySchemes:
+ *      apiAuth:
+ *        type: apiKey
+ *        in: header
+ *        name: token
+ */
+router.post("/registrarse", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    yield controllers.registrarUsuario(req, res, next);
 }));
+router.post("/login", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const token = yield controllers.login(req, res, next);
+}));
+/**
+ * @swagger
+ * /api/auth/login:
+ *  post:
+ *    summary: Obtener token de autenticacion.
+ *    tags:
+ *      - Auth
+ *    responses:
+ *      200:
+ *        description: Devuelve un token de un usuario logueado.
+ *      400:
+ *        description: Devuelve un error generico de credenciales invalidas.
+ *
+ */
+/**
+ * @swagger
+ * /api/auth/registrarse:
+ *  post:
+ *    summary: Registro de un nuevo usuario.
+ *    tags:
+ *      - Auth
+ *    responses:
+ *      200:
+ *        description: Devuelve los datos del nuevo usuario registrado.
+ *      400:
+ *        description: Devuelve un error generico de un error al registrarse.
+ *
+ */
 exports.default = router;
