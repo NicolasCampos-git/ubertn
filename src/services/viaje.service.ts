@@ -10,6 +10,7 @@ import { ValidationError } from "../excepciones/validation.error";
 import axios from "axios";
 import { Ruta } from "../types/ruta";
 import { IniciarViajeDto } from "../dtos/iniciar-viaje.dto";
+import { ViajeController } from "../controllers/viaje.controller";
 
 dotenv.config();
 const ORS_BASE_URL = "https://api.openrouteservice.org/v2/directions";
@@ -67,10 +68,21 @@ export class ViajeService{
             }
         });
     }
+
+    async buscarVIajePorId(viajeId: string):Promise<Viaje>{
+        const viaje = await prisma.viaje.findFirst({
+          where: { id: viajeId },
+        });
+        if (!viaje) {
+          throw new NotFoundError("Viaje no encontrado.");
+        }
+        return viaje;
+
+    }
     
-    //Para poder registrar un viaje con multiples solicitudes hace falta cambiar la relacion en el schema.
+    
     async registrarViaje(data: RegistrarViajeDto, choferId: string): Promise<Viaje | null> {
-        //Faltan las validaciones.
+        
 
         return prisma.$transaction(async (tx) => {
             
@@ -78,8 +90,6 @@ export class ViajeService{
             //Por ahora solo valida que sea un usuario registrado, independiente del rol.
             //Aunque ya esta validado el rol en el token.
             await this.usuarioService.buscarPorId(choferId);
-
-            
 
             //Esto se podria hacer de manera asincrona usando un promise.all
             for (let i = 0;  i < data.solicitudes.length ; i++){
@@ -115,11 +125,7 @@ export class ViajeService{
     async cancelarViaje(viajeId: string, choferId: string): Promise<Viaje>{
         
         //Aca se puede separar para hacer mas limpio el codigo.
-        const viaje = await prisma.viaje.findFirst({
-            where: { id: viajeId }
-        });
-
-        if(!viaje){ throw new NotFoundError("Viaje no encontrado.");}
+        const viaje = await this.buscarVIajePorId(viajeId);
 
 
         if(viaje.estado === "EN_CAMINO" || viaje.estado==="FINALIZADO"){
@@ -150,11 +156,7 @@ export class ViajeService{
             fin: [ -63.216652,-32.408644] //coordenadas de la facu.
         };
 
-        //Separar en un metodo a parte.
-        const viaje = await prisma.viaje.findFirst({
-            where: { id: data.viajeId }
-        });
-        if(!viaje){ throw new NotFoundError("Viaje no encontrado.");}
+        await this.buscarVIajePorId(data.viajeId);
 
 
         //Ver que validaciones son necesarias.

@@ -21,7 +21,7 @@ export class AuthService {
     
     constructor(@inject(UsuarioService) private readonly usuarioService: UsuarioService){}
 
-    async registrar(dataDto: RegistrarUsuarioDto): Promise<Usuario | null> {
+    async registrar(dataDto: RegistrarUsuarioDto): Promise<Usuario> {
 
         
 
@@ -33,7 +33,7 @@ export class AuthService {
         ]);
 
         const usuario = await this.usuarioService.registrarUsuario(dataDto);
-        
+        console.log(usuario);
         //No deberia devolver datos sencibles.
         return usuario;
     }

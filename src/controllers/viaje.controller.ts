@@ -1,8 +1,8 @@
 import { inject, injectable } from "tsyringe";
+import jwt from "jsonwebtoken";
 import { ViajeService } from "../services/viaje.service";
 import { NextFunction, Request, Response } from "express";
 import { JwtPayload } from "../types/auth";
-import jwt from 'jsonwebtoken';
 import { RegistrarViajeDto } from "../dtos/registrar-viaje.dto";
 import { IniciarViajeDto } from "../dtos/iniciar-viaje.dto";
 

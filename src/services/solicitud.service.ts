@@ -1,3 +1,5 @@
+import dotenv from "dotenv";
+
 import { SolicitudViaje} from "@prisma/client";
 import { inject, injectable } from "tsyringe";
 import { UsuarioService } from "./usuario.service";
@@ -5,31 +7,41 @@ import { RegistrarSolicitudViajeDto } from "../dtos/registrar-solicitud-viaje.dt
 import prisma from "../lib/prisma";
 import { NotFoundError } from "../excepciones/not-found.error";
 import { ValidationError } from "../excepciones/validation.error";
+import { UbicacionOrigen } from "../dtos/ubicacion-origen.dto";
+import axios from "axios";
 
+dotenv.config();
+const ORS_BASE_URL = "https://api.openrouteservice.org/";
+const apiKey = process.env.ORS_API_KEY;
 
 @injectable()
 export class SolicitudViajeService {
 
     constructor(@inject(UsuarioService) private readonly usuarioService: UsuarioService){}
     
-    async registrarSolicitudViaje(dto: RegistrarSolicitudViajeDto): Promise<SolicitudViaje | null>{
+    async registrarSolicitudViaje(dto: RegistrarSolicitudViajeDto): Promise<SolicitudViaje>{
         await this.usuarioService.buscarPorId(dto.pasajeroId);
         
-        //VER COMo SE MANEJA LA HORA.
+        
         if( new Date(dto.horarioLlegada).getTime()<= Date.now()){
-            throw new ValidationError("La hora de llegada no es correspondiente.");
+            throw new ValidationError("La hora de llegada no es valida.");
         }
 
-        //Una validacion adicional seria validar que la direccion exista
-        //haciendo uso de google maps o alguna api.
+        
+        //Ver como usar los parametros que devuelve para hacer mas robusto.
+        //Podria cambiar la forma de obtener las direcciones, en vez de usar punto en el mapa.
+        //podria usar un punto de interes, para darle mejor uso a la api.
+        await this.validarDireccion(dto.ubicacionOrigen);
+        
         return prisma.solicitudViaje.create({
             data: {
                 horaLlegadaDeseada: new Date(dto.horarioLlegada),
                 tipoDeVehiculo: dto?.tipoVehiculo,
                 ubicacionOrigen: {
                     create: {
-                        latitud: dto.ubicacionOrigen.latitud,
-                        longitud: dto.ubicacionOrigen.longitud
+                        longitud: dto.ubicacionOrigen.longitud,
+                        latitud: dto.ubicacionOrigen.latitud
+
                     }
                 },
                 pasajero: {
@@ -154,6 +166,29 @@ export class SolicitudViajeService {
             
         });
 
+    }
+
+    async validarDireccion(data: UbicacionOrigen): Promise<void>{
+        try{
+            const response = await axios.get(
+            `${ORS_BASE_URL}/geocode/reverse`,
+            {
+                params: {
+                    'api_key': apiKey,
+                    'point.lon': data.longitud,
+                    'point.lat': data.latitud
+                    }
+                }
+            );
+
+            if(!response){
+                throw new ValidationError("Error en la ubicacion.");
+            }
+            
+        }catch(error){
+            throw new ValidationError("Error al validad direccion.");
+        }
+        
     }
 
     

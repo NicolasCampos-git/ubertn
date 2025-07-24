@@ -28,7 +28,7 @@ export class UsuarioService {
 
     async registrarUsuario(data: RegistrarUsuarioDto): Promise<Usuario>{
         const pass = await this.hashPassword(data.contrasena);
-
+        console.log(data);
         return  prisma.usuario.create({
             data: {
                 email: data.email,
@@ -70,18 +70,11 @@ export class UsuarioService {
             return hashedPassword;
     }
 
+    //Podria ir en un servicio de vehiculos.
     async registrarVehiculo(data: RegistrarVehiculoDto): Promise<Vehiculo>{
 
-        //Deberia moverse a un metodo para hacerlo mas limpio.
-        const validarPatente = await prisma.vehiculo.findFirst({
-            where: {
-                patente: data.patente
-            }
-        });
         
-        if(validarPatente){
-            throw new DuplicationError("La patente ingresada ya se cuentra registrada.");
-        }
+        await this.validarPatente(data.patente);
 
 
         return prisma.vehiculo.create({
@@ -97,5 +90,17 @@ export class UsuarioService {
                 }
             }
         });
+    }
+
+    async validarPatente(patente: string): Promise<void>{
+        const validarPatente = await prisma.vehiculo.findFirst({
+            where: {
+                patente: patente
+            }
+        });
+        
+        if(validarPatente){
+            throw new DuplicationError("La patente ingresada ya se cuentra registrada.");
+        }
     }
 }
