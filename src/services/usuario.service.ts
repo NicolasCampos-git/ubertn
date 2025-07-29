@@ -7,6 +7,7 @@ import { AuthError } from "../excepciones/auth.error";
 import { NotFoundError } from "../excepciones/not-found.error";
 import { RegistrarVehiculoDto } from "../dtos/registrar-vehiculo.dto";
 import { DuplicationError } from "../excepciones/duplicacion.error";
+import { ValidationError } from "../excepciones/validation.error";
 
 @injectable()
 export class UsuarioService {
@@ -68,6 +69,15 @@ export class UsuarioService {
     private async hashPassword(pass: string): Promise<string>{
             const hashedPassword = await bcrypt.hash(pass, 10);
             return hashedPassword;
+    }
+
+    async validarRolChofer(usuarioId: string): Promise<void>{
+        const usuario = await this.buscarPorId(usuarioId);
+
+        if( usuario!.rol !== "CONDUCTOR" ){
+            throw new ValidationError("El usuario no es un conductor.");
+        }
+
     }
 
     //Podria ir en un servicio de vehiculos.

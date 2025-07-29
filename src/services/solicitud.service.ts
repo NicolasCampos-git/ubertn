@@ -93,23 +93,46 @@ export class SolicitudViajeService {
         return solicitud;
     }
 
-    async cancelarSolicitudDeViaje(idSolicitud: string, usuarioId: string): Promise<SolicitudViaje>{
-        const solicitud = await this.buscarSolicitudPorIdUsuario(idSolicitud, usuarioId);
+    async cancelarSolicitudesPorViaje(viajeId: string): Promise<boolean>{
+        const solicitudes = await prisma.solicitudViaje.updateMany({
+            where: { 
+                viajes: {
+                    some: {
+                        viajeId: viajeId
+                    }
+                }
+            },
+            data: {
+                estado: "CANCELADA"
+            }
+        });
+
+        return solicitudes ? true : false;
+    }
+
+    async cancelarSolicitudDeViaje(solicitudId: string, usuarioId: string): Promise<SolicitudViaje>{
+
+        const solicitud = await this.buscarSolicitudPorIdUsuario(
+          solicitudId,
+          usuarioId
+        );
         
         if(solicitud.estado === "CANCELADA"){
             throw new ValidationError("La solicitud ya esta cancelada.");
         }
 
         return prisma.solicitudViaje.update({
-            where: {
-                id: idSolicitud
-            },
-            data: {
-                estado: "CANCELADA",
-                fueCancelada: true
-            }
+          where: {
+            id: solicitudId,
+          },
+          data: {
+            estado: "CANCELADA",
+            fueCancelada: true,
+          },
         });
     }
+
+    
 
     async listarSolicitudesPendientes(){
         return prisma.solicitudViaje.findMany({

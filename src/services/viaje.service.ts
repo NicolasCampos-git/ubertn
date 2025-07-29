@@ -10,7 +10,6 @@ import { ValidationError } from "../excepciones/validation.error";
 import axios from "axios";
 import { Ruta } from "../types/ruta";
 import { IniciarViajeDto } from "../dtos/iniciar-viaje.dto";
-import { ViajeController } from "../controllers/viaje.controller";
 
 dotenv.config();
 const ORS_BASE_URL = "https://api.openrouteservice.org/v2/directions";
@@ -27,7 +26,7 @@ export class ViajeService{
         @inject(UsuarioService) private readonly usuarioService: UsuarioService
     ){}
 
-    //Ver dto para los datos parciales.
+    
     async listasViajesPendientes(choferId: string){
 
         this.usuarioService.buscarPorId(choferId);
@@ -86,17 +85,19 @@ export class ViajeService{
 
         return prisma.$transaction(async (tx) => {
             
-            //Aca se podria agregar para validar que es un chofer valido.
-            //Por ahora solo valida que sea un usuario registrado, independiente del rol.
-            //Aunque ya esta validado el rol en el token.
-            await this.usuarioService.buscarPorId(choferId);
+            
+            
+            await this.usuarioService.validarRolChofer(choferId);
 
-            //Esto se podria hacer de manera asincrona usando un promise.all
-            for (let i = 0;  i < data.solicitudes.length ; i++){
-                
-                await this.solicitudService.aceptarSolicitudViaje(data.solicitudes[i]);
+            
 
-            }
+            await Promise.all(
+
+                data.solicitudes.map( solicitudId => this.solicitudService.aceptarSolicitudViaje(solicitudId) )
+
+            );
+
+            
 
             const viaje = await prisma.viaje.create({
                 data: {
@@ -124,7 +125,7 @@ export class ViajeService{
 
     async cancelarViaje(viajeId: string, choferId: string): Promise<Viaje>{
         
-        //Aca se puede separar para hacer mas limpio el codigo.
+
         const viaje = await this.buscarVIajePorId(viajeId);
 
 
@@ -132,16 +133,24 @@ export class ViajeService{
             throw new ValidationError("No es posible cancelar el viaje seleccionado.");
         }
 
-        //TENGO QUE VER COMO REVERTIR LAS SOLICITUDES VINCULADAS AL VIAJE.
-        //SI SE REVIERTEN A "PEDIENTE_ACEPTACION" O "CANCELADA".
         
+        return prisma.$transaction(async(tx)=>{
 
-        return prisma.viaje.update({
-            where: {id: viajeId},
-            data: {
-                estado: "CANCELADO"
-            }
+            const solicitudes = await this.solicitudService.cancelarSolicitudesPorViaje(viajeId);
+
+            await prisma.viaje.update({
+              where: { id: viajeId },
+              data: {
+                estado: "CANCELADO",
+              },
+            });
+
+            console.log(solicitudes);
+
+            return viaje
         });
+
+        
     }
 
     //FALTA ASIGNAR FUNCIONALIDAD PARA INDICAR QUE SE RECOGIO A DETERMINADO PASAJERO.
