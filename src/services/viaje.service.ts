@@ -159,7 +159,7 @@ export class ViajeService{
     async iniciarViaje(data: IniciarViajeDto){
        
 
-        let rutaDef: Ruta = {
+        const rutaDefinida: Ruta = {
             inicio: [data.ubicacionInicio.latitud,data.ubicacionInicio.longitud],
             solicitudes: [],
             fin: [ -63.216652,-32.408644] //coordenadas de la facu.
@@ -187,16 +187,16 @@ export class ViajeService{
             }
         });
 
-        //Separar logia para poder hacerlo de manera mas eficiente.
-        for (let i = 0; i< paradasViaje.length; i++ ){
-            rutaDef.solicitudes.push([
-                paradasViaje[i].solicitud.ubicacionOrigen.latitud.toNumber(),
-                paradasViaje[i].solicitud.ubicacionOrigen.longitud.toNumber()
-            ])
+        for( const parada of paradasViaje ){
+            rutaDefinida.solicitudes.push([
+              parada.solicitud.ubicacionOrigen.latitud.toNumber(),
+              parada.solicitud.ubicacionOrigen.longitud.toNumber(),
+            ]);
+
         }
         
         
-        const ruta = await this.obtenerRuta([rutaDef.inicio, ...rutaDef.solicitudes, rutaDef.fin]);
+        const ruta = await this.obtenerRuta([rutaDefinida.inicio, ...rutaDefinida.solicitudes, rutaDefinida.fin]);
 
         return ruta;
     }
